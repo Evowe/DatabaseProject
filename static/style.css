@@ -1,0 +1,92 @@
+/* Override Bootstrap primary color with burgundy theme */
+:root {
+  --bs-primary: #823038;
+  --bs-primary-rgb: 130, 48, 56;
+}
+
+/* Primary button styling */
+.btn-primary {
+  background-color: #823038;
+  border-color: #823038;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #6a2630;
+  border-color: #6a2630;
+  color: #fff;
+}
+
+.btn-primary:active,
+.btn-primary.active {
+  background-color: #5a1f28;
+  border-color: #5a1f28;
+}
+
+.btn-primary:focus {
+  background-color: #823038;
+  border-color: #823038;
+  box-shadow: 0 0 0 0.25rem rgba(130, 48, 56, 0.5);
+}
+
+/* Primary badge styling */
+.badge.bg-primary {
+  background-color: #823038 !important;
+}
+
+/* Primary alert styling */
+.alert-primary {
+  background-color: #faf7f8;
+  border-color: #e8d5da;
+  color: #823038;
+}
+
+.alert-primary hr {
+  border-top-color: #dcc9cf;
+}
+
+.alert-primary .alert-link {
+  color: #6a2630;
+}
+
+/* Primary nav link styling */
+.nav-link.active {
+  color: #823038 !important;
+}
+
+.navbar-dark .navbar-nav .nav-link.active {
+  color: #fff !important;
+}
+
+/* Primary text styling */
+.text-primary {
+  color: #823038 !important;
+}
+
+a.text-primary:hover,
+a.text-primary:focus {
+  color: #6a2630 !important;
+}
+
+/* Primary border styling */
+.border-primary {
+  border-color: #823038 !important;
+}
+
+/* Form control focus styling */
+.form-control:focus,
+.form-select:focus {
+  border-color: #823038;
+  box-shadow: 0 0 0 0.25rem rgba(130, 48, 56, 0.25);
+}
+
+/* Link styling */
+a {
+  color: #823038;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #6a2630;
+  text-decoration: underline;
+}

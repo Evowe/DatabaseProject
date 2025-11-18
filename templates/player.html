@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+
+{% block title %}{{ player_info.nameFirst }} {{ player_info.nameLast }} - Baseball Stats{% endblock %}
+
+{% block content %}
+<style>
+    /* Make sortable table headers appear clickable */
+    #batting-career th, #pitching-career th, #fielding-career th {
+        user-select: none;
+        white-space: nowrap;
+    }
+    
+    #batting-career tbody tr:hover, #pitching-career tbody tr:hover, #fielding-career tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+    
+    .player-header {
+        background: white;
+        border: 1px solid #dee2e6;
+        padding: 30px 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .player-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .player-info-text {
+        font-size: 1.1em;
+        margin: 5px 0;
+        color: #555;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <!-- Player Header -->
+            <div class="player-header">
+                <h1>
+                    {{ player_info.nameFirst }} {{ player_info.nameLast }}
+                    {% if hof_info %}
+                        <span class="badge bg-warning text-dark" style="font-size: 0.6em; margin-left: 10px;">Hall of Fame ({{ hof_info.yearID }})</span>
+                    {% endif %}
+                </h1>
+                <div class="player-info-text">
+                    {% if player_info.birthYear %}
+                        Born: {{ player_info.birthYear }}
+                        {% if player_info.deathYear %}
+                            - Died: {{ player_info.deathYear }}
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-sm">← Back to Search</a>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs mt-4" id="careerTab" role="tablist">
+                {% if batting_stats %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="batting-tab" data-bs-toggle="tab" data-bs-target="#batting-content" type="button" role="tab" aria-controls="batting-content" aria-selected="true">
+                        Batting Career
+                    </button>
+                </li>
+                {% endif %}
+                {% if pitching_stats %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if not batting_stats %}active{% endif %}" id="pitching-tab" data-bs-toggle="tab" data-bs-target="#pitching-content" type="button" role="tab" aria-controls="pitching-content" aria-selected="{% if not batting_stats %}true{% else %}false{% endif %}">
+                        Pitching Career
+                    </button>
+                </li>
+                {% endif %}
+                {% if fielding_stats %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if not batting_stats and not pitching_stats %}active{% endif %}" id="fielding-tab" data-bs-toggle="tab" data-bs-target="#fielding-content" type="button" role="tab" aria-controls="fielding-content" aria-selected="{% if not batting_stats and not pitching_stats %}true{% else %}false{% endif %}">
+                        Fielding Career
+                    </button>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="careerTabContent">
+                <!-- Batting Career Tab -->
+                {% if batting_stats %}
+                <div class="tab-pane fade show active" id="batting-content" role="tabpanel" aria-labelledby="batting-tab">
+                    <div class="mt-5">
+                        <h3>Career Batting Statistics</h3>
+                        
+                        <!-- Career Totals -->
+                        <div class="card mt-4 mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Career Totals</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>G</th>
+                                                <th>AB</th>
+                                                <th>H</th>
+                                                <th>2B</th>
+                                                <th>3B</th>
+                                                <th>HR</th>
+                                                <th>R</th>
+                                                <th>RBI</th>
+                                                <th>BB</th>
+                                                <th>SO</th>
+                                                <th>SB</th>
+                                                <th>AVG</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>{{ batting_stats|sum(attribute='games') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='at_bats') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='hits') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='doubles') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='triples') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='home_runs') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='runs') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='rbis') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='walks') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='strikeouts') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='stolen_bases') }}</strong></td>
+                                                <td><strong>{{ "%.3f"|format(batting_stats|sum(attribute='hits') / (batting_stats|sum(attribute='at_bats') if batting_stats|sum(attribute='at_bats') else 1)) }}</strong></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Year-by-Year Stats -->
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Year-by-Year Breakdown</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover" id="batting-career">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Year</th>
+                                                <th>Team</th>
+                                                <th>G</th>
+                                                <th>AB</th>
+                                                <th>H</th>
+                                                <th>2B</th>
+                                                <th>3B</th>
+                                                <th>HR</th>
+                                                <th>R</th>
+                                                <th>RBI</th>
+                                                <th>BB</th>
+                                                <th>SO</th>
+                                                <th>SB</th>
+                                                <th>AVG</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for season in batting_stats %}
+                                            <tr>
+                                                <td>{{ season.year }}</td>
+                                                <td><a href="{{ url_for('search') }}">{{ season.team }}</a></td>
+                                                <td>{{ season.games if season.games else "-" }}</td>
+                                                <td>{{ season.at_bats }}</td>
+                                                <td>{{ season.hits }}</td>
+                                                <td>{{ season.doubles }}</td>
+                                                <td>{{ season.triples }}</td>
+                                                <td>{{ season.home_runs }}</td>
+                                                <td>{{ season.runs }}</td>
+                                                <td>{{ season.rbis }}</td>
+                                                <td>{{ season.walks }}</td>
+                                                <td>{{ season.strikeouts }}</td>
+                                                <td>{{ season.stolen_bases }}</td>
+                                                <td>{{ "%.3f"|format(season.batting_average) if season.batting_average else "N/A" }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Pitching Career Tab -->
+                {% if pitching_stats %}
+                <div class="tab-pane fade {% if not batting_stats %}show active{% endif %}" id="pitching-content" role="tabpanel" aria-labelledby="pitching-tab">
+                    <div class="mt-5">
+                        <h3>Career Pitching Statistics</h3>
+                        
+                        <!-- Career Totals -->
+                        <div class="card mt-4 mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Career Totals</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>G</th>
+                                                <th>GS</th>
+                                                <th>CG</th>
+                                                <th>SHO</th>
+                                                <th>W</th>
+                                                <th>L</th>
+                                                <th>SV</th>
+                                                <th>IPOuts</th>
+                                                <th>H</th>
+                                                <th>R</th>
+                                                <th>ER</th>
+                                                <th>BB</th>
+                                                <th>SO</th>
+                                                <th>HR</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>{{ pitching_stats|sum(attribute='games') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='games_started') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='complete_games') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='shutouts') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='wins') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='losses') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='saves') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='ip_outs') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='hits') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='runs') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='earned_runs') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='walks') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='strikeouts') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='home_runs') }}</strong></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Year-by-Year Stats -->
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Year-by-Year Breakdown</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover" id="pitching-career">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Year</th>
+                                                <th>Team</th>
+                                                <th>G</th>
+                                                <th>GS</th>
+                                                <th>CG</th>
+                                                <th>SHO</th>
+                                                <th>W</th>
+                                                <th>L</th>
+                                                <th>SV</th>
+                                                <th>IPOuts</th>
+                                                <th>H</th>
+                                                <th>R</th>
+                                                <th>ER</th>
+                                                <th>BB</th>
+                                                <th>SO</th>
+                                                <th>HR</th>
+                                                <th>ERA</th>
+                                                <th>BAA</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for season in pitching_stats %}
+                                            <tr>
+                                                <td>{{ season.year }}</td>
+                                                <td><a href="{{ url_for('search') }}">{{ season.team }}</a></td>
+                                                <td>{{ season.games if season.games else "-" }}</td>
+                                                <td>{{ season.games_started if season.games_started else "-" }}</td>
+                                                <td>{{ season.complete_games if season.complete_games else "-" }}</td>
+                                                <td>{{ season.shutouts if season.shutouts else "-" }}</td>
+                                                <td>{{ season.wins if season.wins else "-" }}</td>
+                                                <td>{{ season.losses if season.losses else "-" }}</td>
+                                                <td>{{ season.saves if season.saves else "-" }}</td>
+                                                <td>{{ season.ip_outs if season.ip_outs else "-" }}</td>
+                                                <td>{{ season.hits if season.hits else "-" }}</td>
+                                                <td>{{ season.runs if season.runs else "-" }}</td>
+                                                <td>{{ season.earned_runs if season.earned_runs else "-" }}</td>
+                                                <td>{{ season.walks if season.walks else "-" }}</td>
+                                                <td>{{ season.strikeouts if season.strikeouts else "-" }}</td>
+                                                <td>{{ season.home_runs if season.home_runs else "-" }}</td>
+                                                <td>{{ season.era if season.era else "N/A" }}</td>
+                                                <td>{{ "%.3f"|format(season.batting_avg_allowed) if season.batting_avg_allowed else "N/A" }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Fielding Career Tab -->
+                {% if fielding_stats %}
+                <div class="tab-pane fade {% if not batting_stats and not pitching_stats %}show active{% endif %}" id="fielding-content" role="tabpanel" aria-labelledby="fielding-tab">
+                    <div class="mt-5">
+                        <h3>Career Fielding Statistics</h3>
+                        
+                        <!-- Career Totals -->
+                        <div class="card mt-4 mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Career Totals</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>G</th>
+                                                <th>GS</th>
+                                                <th>IO</th>
+                                                <th>PO</th>
+                                                <th>A</th>
+                                                <th>E</th>
+                                                <th>DP</th>
+                                                <th>PB</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>{{ fielding_stats|sum(attribute='games') }}</strong></td>
+                                                <td><strong>{{ fielding_stats|sum(attribute='games_started') }}</strong></td>
+                                                <td><strong>{{ fielding_stats|sum(attribute='innings_outs') }}</strong></td>
+                                                <td><strong>{{ fielding_stats|sum(attribute='putouts') }}</strong></td>
+                                                <td><strong>{{ fielding_stats|sum(attribute='assists') }}</strong></td>
+                                                <td><strong>{{ fielding_stats|sum(attribute='errors') }}</strong></td>
+                                                <td><strong>{{ fielding_stats|sum(attribute='double_plays') }}</strong></td>
+                                                <td><strong>{{ fielding_stats|sum(attribute='passed_balls') }}</strong></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Year-by-Year Stats -->
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Year-by-Year Breakdown</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover" id="fielding-career">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Year</th>
+                                                <th>Team</th>
+                                                <th>Position</th>
+                                                <th>G</th>
+                                                <th>GS</th>
+                                                <th>IO</th>
+                                                <th>PO</th>
+                                                <th>A</th>
+                                                <th>E</th>
+                                                <th>DP</th>
+                                                <th>PB</th>
+                                                <th>PO/G</th>
+                                                <th>Fielding Avg</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for season in fielding_stats %}
+                                            <tr>
+                                                <td>{{ season.year }}</td>
+                                                <td><a href="{{ url_for('search') }}">{{ season.team }}</a></td>
+                                                <td>{{ season.position if season.position else "-" }}</td>
+                                                <td>{{ season.games if season.games else "-" }}</td>
+                                                <td>{{ season.games_started if season.games_started else "-" }}</td>
+                                                <td>{{ season.innings_outs if season.innings_outs else "-" }}</td>
+                                                <td>{{ season.putouts if season.putouts else "-" }}</td>
+                                                <td>{{ season.assists if season.assists else "-" }}</td>
+                                                <td>{{ season.errors if season.errors else "-" }}</td>
+                                                <td>{{ season.double_plays if season.double_plays else "-" }}</td>
+                                                <td>{{ season.passed_balls if season.passed_balls else "-" }}</td>
+                                                <td>{{ season.putouts_per_game if season.putouts_per_game else "-" }}</td>
+                                                <td>{{ "%.3f"|format(season.fielding_avg) if season.fielding_avg else "N/A" }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- No Stats Message -->
+            {% if not batting_stats and not pitching_stats and not fielding_stats %}
+            <div class="alert alert-info mt-4">
+                <p>No career statistics found for this player.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Sort state tracking
+const sortState = {
+    'batting-career': { column: null, ascending: true },
+    'pitching-career': { column: null, ascending: true },
+    'fielding-career': { column: null, ascending: true }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup sortable headers for batting career table
+    const battingHeaders = document.querySelectorAll('#batting-career th');
+    battingHeaders.forEach((header, index) => {
+        if (index > 1) { // Skip Year and Team columns
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', function() {
+                sortTable('batting-career', index);
+            });
+        }
+    });
+
+    // Setup sortable headers for pitching career table
+    const pitchingHeaders = document.querySelectorAll('#pitching-career th');
+    pitchingHeaders.forEach((header, index) => {
+        if (index > 1) { // Skip Year and Team columns
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', function() {
+                sortTable('pitching-career', index);
+            });
+        }
+    });
+
+    // Setup sortable headers for fielding career table
+    const fieldingHeaders = document.querySelectorAll('#fielding-career th');
+    fieldingHeaders.forEach((header, index) => {
+        if (index > 1) { // Skip Year and Team columns
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', function() {
+                sortTable('fielding-career', index);
+            });
+        }
+    });
+});
+
+function sortTable(tableId, columnIndex) {
+    const tableBody = document.querySelector(`#${tableId} tbody`);
+    const rows = Array.from(tableBody.querySelectorAll('tr'));
+    
+    // Toggle sort direction if same column is clicked
+    if (sortState[tableId].column === columnIndex) {
+        sortState[tableId].ascending = !sortState[tableId].ascending;
+    } else {
+        sortState[tableId].column = columnIndex;
+        sortState[tableId].ascending = true;
+    }
+
+    // Sort rows
+    rows.sort((a, b) => {
+        const aValue = a.cells[columnIndex].textContent.trim();
+        const bValue = b.cells[columnIndex].textContent.trim();
+
+        // Try to parse as number
+        const aNum = parseFloat(aValue);
+        const bNum = parseFloat(bValue);
+
+        let comparison = 0;
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+            // Numeric sort
+            comparison = aNum - bNum;
+        } else {
+            // String sort
+            comparison = aValue.localeCompare(bValue);
+        }
+
+        return sortState[tableId].ascending ? comparison : -comparison;
+    });
+
+    // Re-render sorted rows
+    rows.forEach(row => tableBody.appendChild(row));
+
+    // Update header styling to show sort direction
+    updateHeaderStyling(tableId, columnIndex);
+}
+
+function updateHeaderStyling(tableId, columnIndex) {
+    const headers = document.querySelectorAll(`#${tableId} th`);
+    headers.forEach((header, index) => {
+        header.textContent = header.textContent.replace(' ▲', '').replace(' ▼', '');
+        if (index === columnIndex) {
+            const arrow = sortState[tableId].ascending ? ' ▲' : ' ▼';
+            header.textContent += arrow;
+        }
+    });
+}
+</script>
+
+{% endblock %}

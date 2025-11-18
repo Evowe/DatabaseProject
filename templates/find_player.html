@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Find Player - Baseball Stats{% endblock %}
+
+{% block content %}
+<style>
+    .player-search-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .search-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .search-header h1 {
+        font-size: 2.5em;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .search-header p {
+        color: #666;
+        font-size: 1.1em;
+    }
+
+    .search-input-group {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 15px 20px;
+        font-size: 1.1em;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        transition: border-color 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .player-suggestions {
+        list-group position-absolute w-100;
+        max-height: 400px;
+        overflow-y: auto;
+        display: none;
+        z-index: 1000;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .player-suggestions.show {
+        display: block;
+    }
+
+    .player-item {
+        padding: 12px 20px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        text-decoration: none;
+        color: #333;
+        transition: background-color 0.2s ease;
+        display: block;
+    }
+
+    .player-item:last-child {
+        border-bottom: none;
+    }
+
+    .player-item:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+    }
+
+    .no-results {
+        padding: 20px;
+        text-align: center;
+        color: #666;
+    }
+
+    .search-info {
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+    }
+
+    .search-info h3 {
+        margin-top: 0;
+        color: #0d6efd;
+    }
+
+    .search-info p {
+        margin: 10px 0;
+        color: #666;
+    }
+</style>
+
+<div class="player-search-container">
+    <div class="search-header">
+        <h1>Find a Player</h1>
+        <p>Search for any player in the database</p>
+    </div>
+
+    <div class="search-input-group">
+        <input type="text" id="playerSearch" class="search-input" placeholder="Enter player name...">
+        <div id="playerSuggestions" class="player-suggestions"></div>
+    </div>
+
+</div>
+
+<script>
+const playerCache = {};
+let debounceTimer = null;
+const DEBOUNCE_DELAY = 300;
+const MIN_CHARS = 2;
+
+const playerInput = document.getElementById('playerSearch');
+const suggestionsDiv = document.getElementById('playerSuggestions');
+
+playerInput.addEventListener('input', function() {
+    const query = this.value.trim();
+
+    clearTimeout(debounceTimer);
+
+    if (query.length < MIN_CHARS) {
+        suggestionsDiv.classList.remove('show');
+        return;
+    }
+
+    if (playerCache[query]) {
+        displaySuggestions(playerCache[query]);
+        return;
+    }
+
+    debounceTimer = setTimeout(() => {
+        fetch(`/api/players?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                playerCache[query] = data.players;
+                displaySuggestions(data.players);
+            })
+            .catch(error => console.error('Error:', error));
+    }, DEBOUNCE_DELAY);
+});
+
+function displaySuggestions(players) {
+    suggestionsDiv.innerHTML = '';
+
+    if (players.length === 0) {
+        suggestionsDiv.innerHTML = '<div class="no-results">No players found</div>';
+        suggestionsDiv.classList.add('show');
+        return;
+    }
+
+    players.forEach(player => {
+        const link = document.createElement('a');
+        link.href = `/player/${player.id}`;
+        link.className = 'player-item';
+        link.textContent = player.name;
+        suggestionsDiv.appendChild(link);
+    });
+
+    suggestionsDiv.classList.add('show');
+}
+
+// Hide suggestions when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target !== playerInput && !suggestionsDiv.contains(e.target)) {
+        suggestionsDiv.classList.remove('show');
+    }
+});
+</script>
+
+{% endblock %}

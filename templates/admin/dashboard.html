@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    <p class="lead">Manage registered users</p>
+
+    {% if users %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Admin Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr class="user-row" data-user-id="{{ user.id }}">
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                            <span class="badge bg-info">Admin</span>
+                        {% else %}
+                            <span class="badge bg-secondary">User</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if user.id != current_user.id %}
+                        <button class="btn btn-sm btn-toggle-admin me-2" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+                            {% if user.is_admin %}
+                                <i class="bi bi-arrow-down"></i> Demote
+                            {% else %}
+                                <i class="bi bi-arrow-up"></i> Promote
+                            {% endif %}
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-delete-user" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">You</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No users found.
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Back to Home</a>
+</div>
+
+<style>
+    .user-row {
+        transition: opacity 0.3s ease;
+    }
+
+    .btn-toggle-admin {
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+    }
+
+    .btn-toggle-admin:hover {
+        background-color: #0b5ed7;
+        color: white;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle admin status
+        document.querySelectorAll('.btn-toggle-admin').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const username = this.getAttribute('data-username');
+                const action = this.textContent.toLowerCase().includes('demote') ? 'demote' : 'promote';
+
+                if (!confirm(`Are you sure you want to ${action} ${username}?`)) {
+                    return;
+                }
+
+                fetch(`/admin/users/${userId}/toggle-admin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload the page to reflect changes
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred');
+                });
+            });
+        });
+
+        // Delete user
+        document.querySelectorAll('.btn-delete-user').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const username = this.getAttribute('data-username');
+
+                if (!confirm(`Are you sure you want to delete ${username}? This action cannot be undone.`)) {
+                    return;
+                }
+
+                fetch(`/admin/users/${userId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the row from the table
+                        const row = document.querySelector(`[data-user-id="${userId}"]`);
+                        row.style.opacity = '0';
+                        setTimeout(() => {
+                            row.remove();
+                            // Show success message
+                            alert(`User ${username} has been deleted.`);
+                        }, 300);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

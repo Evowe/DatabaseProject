@@ -1,9 +1,10 @@
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from functools import wraps
 from csi3335f2025 import mysql
-from models import db, User
-from forms import LoginForm, RegistrationForm, TeamStatsForm
+from models import db, User, Post, Comment, Like
+from forms import LoginForm, RegistrationForm, TeamStatsForm, PostForm, CommentForm
 import pymysql
 
 app = Flask(__name__)
@@ -24,9 +25,122 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 
+# Admin required decorator
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            flash('You do not have permission to access this page.', 'danger')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    page = request.args.get('page', 1, type=int)
+    posts = Post.query.order_by(Post.created_at.desc()).paginate(page=page, per_page=10)
+    form = PostForm()
+    return render_template('index.html', posts=posts, form=form)
+
+
+@app.route('/post/create', methods=['POST'])
+@login_required
+def create_post():
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(content=form.content.data, user_id=current_user.id)
+        db.session.add(post)
+        db.session.commit()
+        flash('Your post has been created!', 'success')
+    return redirect(url_for('index'))
+
+
+@app.route('/post/<int:post_id>/delete', methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+
+    # Only allow post author or admin to delete
+    if post.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Permission denied'}), 403
+
+    db.session.delete(post)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+@app.route('/post/<int:post_id>/like', methods=['POST'])
+@login_required
+def like_post(post_id):
+    post = Post.query.get_or_404(post_id)
+
+    # Check if user already liked this post
+    existing_like = Like.query.filter_by(user_id=current_user.id, post_id=post_id).first()
+
+    if existing_like:
+        # Unlike
+        db.session.delete(existing_like)
+        db.session.commit()
+        return jsonify({'success': True, 'liked': False, 'like_count': post.get_like_count()})
+    else:
+        # Like
+        like = Like(user_id=current_user.id, post_id=post_id)
+        db.session.add(like)
+        db.session.commit()
+        return jsonify({'success': True, 'liked': True, 'like_count': post.get_like_count()})
+
+
+@app.route('/post/<int:post_id>/comment', methods=['POST'])
+@login_required
+def add_comment(post_id):
+    post = Post.query.get_or_404(post_id)
+
+    # Handle AJAX JSON request
+    if request.is_json:
+        data = request.get_json()
+        content = data.get('content', '').strip()
+
+        if not content or len(content) > 500:
+            return jsonify({'success': False, 'message': 'Invalid comment'}), 400
+
+        comment = Comment(content=content, user_id=current_user.id, post_id=post_id)
+        db.session.add(comment)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'comment_id': comment.id,
+            'username': current_user.username
+        })
+
+    # Handle form submission (traditional)
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(content=form.content.data, user_id=current_user.id, post_id=post_id)
+        db.session.add(comment)
+        db.session.commit()
+        flash('Your comment has been added!', 'success')
+
+    return redirect(url_for('index'))
+
+
+@app.route('/comment/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    post_id = comment.post_id
+
+    # Only allow comment author or admin to delete
+    if comment.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Permission denied'}), 403
+
+    db.session.delete(comment)
+    db.session.commit()
+
+    return jsonify({'success': True})
 
 
 @app.route('/about')
@@ -77,6 +191,50 @@ def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
+
+
+@app.route('/admin/dashboard')
+@admin_required
+def admin_dashboard():
+    """Admin dashboard to manage users"""
+    users = User.query.all()
+    return render_template('admin/dashboard.html', users=users)
+
+
+@app.route('/admin/users/<int:user_id>/toggle-admin', methods=['POST'])
+@admin_required
+def toggle_admin(user_id):
+    """Toggle admin status for a user"""
+    user = User.query.get_or_404(user_id)
+
+    # Prevent admin from removing their own admin status
+    if user.id == current_user.id:
+        return jsonify({'success': False, 'message': 'Cannot change your own admin status'}), 400
+
+    user.is_admin = not user.is_admin
+    db.session.commit()
+
+    status = 'promoted to' if user.is_admin else 'demoted from'
+    flash(f'User {user.username} has been {status} admin.', 'success')
+    return jsonify({'success': True, 'is_admin': user.is_admin})
+
+
+@app.route('/admin/users/<int:user_id>/delete', methods=['POST'])
+@admin_required
+def delete_user(user_id):
+    """Delete a user"""
+    user = User.query.get_or_404(user_id)
+
+    # Prevent admin from deleting themselves
+    if user.id == current_user.id:
+        return jsonify({'success': False, 'message': 'Cannot delete your own account'}), 400
+
+    username = user.username
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(f'User {username} has been deleted.', 'success')
+    return jsonify({'success': True})
 
 
 @app.route('/api/players', methods=['GET'])

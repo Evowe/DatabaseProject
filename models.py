@@ -83,3 +83,23 @@ class Like(db.Model):
 
     def __repr__(self):
         return f'<Like {self.user_id} on Post {self.post_id}>'
+
+
+def create_default_admin():
+    """Create a default admin user if one doesn't already exist"""
+    # Check if admin user already exists
+    admin = User.query.filter_by(username='admin').first()
+
+    if not admin:
+        # Create admin user
+        admin = User(
+            username='admin',
+            email='admin@baseball.com',
+            is_admin=True
+        )
+        admin.set_password('admin')
+        db.session.add(admin)
+        db.session.commit()
+        print("✓ Default admin user created (username: admin, password: admin)")
+    else:
+        print("✓ Admin user already exists")

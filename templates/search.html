@@ -25,7 +25,42 @@
         color: #0d6efd;
         text-decoration: underline;
     }
+
+    .table-responsive {
+        border-radius: 0.25rem;
+    }
+
+    /* Hide default scrollbar */
+    .table-responsive {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Custom scrollbar at top */
+    .scrollbar-container {
+        background: #f1f1f1;
+        border-radius: 10px;
+        height: 8px;
+        margin-bottom: 8px;
+        cursor: pointer;
+    }
+
+    .scrollbar-thumb {
+        background: #495057;
+        height: 100%;
+        border-radius: 10px;
+        transition: background 0.2s ease;
+    }
+
+    .scrollbar-thumb:hover {
+        background: #343a40;
+    }
 </style>
+
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-8 offset-md-2">
@@ -117,6 +152,9 @@
                                 Export to CSV
                             </button>
                         </div>
+                        <div class="scrollbar-container">
+                            <div class="scrollbar-thumb" data-table="batting-table"></div>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover" id="batting-table">
                                 <thead class="table-dark">
@@ -124,16 +162,28 @@
                                         <th>Player</th>
                                         <th>G</th>
                                         <th>AB</th>
+                                        <th>PA</th>
                                         <th>H</th>
+                                        <th>1B</th>
                                         <th>2B</th>
                                         <th>3B</th>
                                         <th>HR</th>
                                         <th>R</th>
                                         <th>RBI</th>
                                         <th>BB</th>
+                                        <th>IBB</th>
                                         <th>SO</th>
                                         <th>SB</th>
+                                        <th>CS</th>
+                                        <th>HBP</th>
+                                        <th>SH</th>
+                                        <th>SF</th>
+                                        <th>GDP</th>
                                         <th>AVG</th>
+                                        <th>OBP</th>
+                                        <th>SLG</th>
+                                        <th>ISO</th>
+                                        <th>BABIP</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -147,16 +197,28 @@
                                         </td>
                                         <td>{{ player.games if player.games else "-" }}</td>
                                         <td>{{ player.at_bats }}</td>
+                                        <td>{{ player.plate_appearances }}</td>
                                         <td>{{ player.hits }}</td>
+                                        <td>{{ (player.hits - player.doubles - player.triples - player.home_runs) if player.hits else "-" }}</td>
                                         <td>{{ player.doubles }}</td>
                                         <td>{{ player.triples }}</td>
                                         <td>{{ player.home_runs }}</td>
                                         <td>{{ player.runs }}</td>
                                         <td>{{ player.rbis }}</td>
                                         <td>{{ player.walks }}</td>
+                                        <td>{{ player.intentional_walks if player.intentional_walks else "-" }}</td>
                                         <td>{{ player.strikeouts }}</td>
                                         <td>{{ player.stolen_bases }}</td>
-                                        <td>{{ "%.3f"|format(player.batting_average) if player.batting_average else "N/A" }}</td>
+                                        <td>{{ player.caught_stealing if player.caught_stealing else "-" }}</td>
+                                        <td>{{ player.hit_by_pitch if player.hit_by_pitch else "-" }}</td>
+                                        <td>{{ player.sacrifice_hits if player.sacrifice_hits else "-" }}</td>
+                                        <td>{{ player.sacrifice_flies if player.sacrifice_flies else "-" }}</td>
+                                        <td>{{ player.gdp if player.gdp else "-" }}</td>
+                                        <td>{{ "%.3f"|format(player.batting_average) if player.batting_average else "-" }}</td>
+                                        <td>{{ "%.3f"|format(player.on_base_pct) if player.on_base_pct else "-" }}</td>
+                                        <td>{{ "%.3f"|format(player.slugging_pct) if player.slugging_pct else "-" }}</td>
+                                        <td>{{ "%.3f"|format(player.isolated_power) if player.isolated_power else "-" }}</td>
+                                        <td>{{ "%.3f"|format(player.babip) if player.babip else "-" }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -173,6 +235,9 @@
                                 Export to CSV
                             </button>
                         </div>
+                        <div class="scrollbar-container">
+                            <div class="scrollbar-thumb" data-table="pitching-table"></div>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover" id="pitching-table">
                                 <thead class="table-dark">
@@ -185,15 +250,25 @@
                                         <th>W</th>
                                         <th>L</th>
                                         <th>SV</th>
-                                        <th>IPOuts</th>
+                                        <th>IP</th>
                                         <th>H</th>
                                         <th>R</th>
                                         <th>ER</th>
                                         <th>BB</th>
+                                        <th>IBB</th>
+                                        <th>HBP</th>
                                         <th>SO</th>
                                         <th>HR</th>
+                                        <th>WP</th>
+                                        <th>BK</th>
+                                        <th>BFP</th>
+                                        <th>GF</th>
+                                        <th>SH</th>
+                                        <th>SF</th>
+                                        <th>GDP</th>
                                         <th>ERA</th>
                                         <th>BAA</th>
+                                        <th>WHIP</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -212,15 +287,25 @@
                                         <td>{{ player.wins if player.wins else "-" }}</td>
                                         <td>{{ player.losses if player.losses else "-" }}</td>
                                         <td>{{ player.saves if player.saves else "-" }}</td>
-                                        <td>{{ player.ip_outs if player.ip_outs else "-" }}</td>
+                                        <td>{{ player.innings_pitched if player.innings_pitched else "-" }}</td>
                                         <td>{{ player.hits if player.hits else "-" }}</td>
                                         <td>{{ player.runs if player.runs else "-" }}</td>
                                         <td>{{ player.earned_runs if player.earned_runs else "-" }}</td>
                                         <td>{{ player.walks if player.walks else "-" }}</td>
+                                        <td>{{ player.intentional_walks if player.intentional_walks else "-" }}</td>
+                                        <td>{{ player.hit_by_pitch if player.hit_by_pitch else "-" }}</td>
                                         <td>{{ player.strikeouts if player.strikeouts else "-" }}</td>
                                         <td>{{ player.home_runs if player.home_runs else "-" }}</td>
-                                        <td>{{ player.era if player.era else "N/A" }}</td>
-                                        <td>{{ "%.3f"|format(player.batting_avg_allowed) if player.batting_avg_allowed else "N/A" }}</td>
+                                        <td>{{ player.wild_pitches if player.wild_pitches else "-" }}</td>
+                                        <td>{{ player.balks if player.balks else "-" }}</td>
+                                        <td>{{ player.batters_faced if player.batters_faced else "-" }}</td>
+                                        <td>{{ player.games_finished if player.games_finished else "-" }}</td>
+                                        <td>{{ player.sacrifice_hits if player.sacrifice_hits else "-" }}</td>
+                                        <td>{{ player.sacrifice_flies if player.sacrifice_flies else "-" }}</td>
+                                        <td>{{ player.gdp if player.gdp else "-" }}</td>
+                                        <td>{{ "%.2f"|format(player.era) if player.era else "-" }}</td>
+                                        <td>{{ "%.3f"|format(player.batting_avg_allowed) if player.batting_avg_allowed else "-" }}</td>
+                                        <td>{{ "%.3f"|format(player.whip) if player.whip else "-" }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -236,6 +321,9 @@
                             <button class="btn btn-sm btn-outline-primary" onclick="exportTableToCSV('Fielding', document.getElementById('fielding-table'))">
                                 Export to CSV
                             </button>
+                        </div>
+                        <div class="scrollbar-container">
+                            <div class="scrollbar-thumb" data-table="fielding-table"></div>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover" id="fielding-table">
@@ -367,7 +455,123 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Sortable table functionality
+/* ---------- FIXED, TAB-AWARE CUSTOM SCROLLBARS ---------- */
+function initCustomScrollbars() {
+    const thumbs = document.querySelectorAll('.scrollbar-thumb');
+
+    thumbs.forEach(thumb => {
+        const tableId = thumb.getAttribute('data-table');
+        const tableEl = document.getElementById(tableId);
+        if (!tableEl) return;
+
+        const scrollContainer = tableEl.closest('.table-responsive');
+        const barContainer = thumb.closest('.scrollbar-container');
+        if (!scrollContainer || !barContainer) return;
+
+        function update() {
+            const scrollWidth = scrollContainer.scrollWidth;
+            const clientWidth = scrollContainer.clientWidth;
+            const scrollLeft = scrollContainer.scrollLeft;
+
+            // If no horizontal overflow, hide the custom bar
+            if (scrollWidth <= clientWidth) {
+                barContainer.style.display = 'none';
+                return;
+            } else {
+                barContainer.style.display = 'block';
+            }
+
+            const trackWidth = barContainer.clientWidth;
+            const thumbWidthPx = Math.max(20, (clientWidth / scrollWidth) * trackWidth);
+            const maxScroll = scrollWidth - clientWidth;
+            const maxThumbTravel = trackWidth - thumbWidthPx;
+
+            const thumbLeftPx = maxScroll === 0 ? 0 : (scrollLeft / maxScroll) * maxThumbTravel;
+
+            thumb.style.width = thumbWidthPx + 'px';
+            thumb.style.transform = `translateX(${thumbLeftPx}px)`;
+        }
+
+        // Sync when table scrolls
+        scrollContainer.addEventListener('scroll', update);
+
+        // Sync on window resize
+        window.addEventListener('resize', update);
+
+        // Dragging behavior
+        let isDragging = false;
+        let dragStartX = 0;
+        let startScrollLeft = 0;
+
+        thumb.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragStartX = e.clientX;
+            startScrollLeft = scrollContainer.scrollLeft;
+            thumb.style.background = '#343a40';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const trackWidth = barContainer.clientWidth;
+            const scrollWidth = scrollContainer.scrollWidth;
+            const clientWidth = scrollContainer.clientWidth;
+            const maxScroll = scrollWidth - clientWidth;
+
+            const thumbWidthPx = Math.max(20, (clientWidth / scrollWidth) * trackWidth);
+            const maxThumbTravel = trackWidth - thumbWidthPx;
+
+            const deltaX = e.clientX - dragStartX;
+            const scrollRatio = maxScroll / maxThumbTravel;
+
+            scrollContainer.scrollLeft = startScrollLeft + deltaX * scrollRatio;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            thumb.style.background = '#495057';
+        });
+
+        // Click on the track to jump
+        barContainer.addEventListener('click', (e) => {
+            if (e.target === thumb) return;
+
+            const rect = barContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+
+            const trackWidth = barContainer.clientWidth;
+            const scrollWidth = scrollContainer.scrollWidth;
+            const clientWidth = scrollContainer.clientWidth;
+            const maxScroll = scrollWidth - clientWidth;
+
+            const thumbWidthPx = Math.max(20, (clientWidth / scrollWidth) * trackWidth);
+            const maxThumbTravel = trackWidth - thumbWidthPx;
+
+            const thumbCenter = clickX - thumbWidthPx / 2;
+            const bounded = Math.max(0, Math.min(maxThumbTravel, thumbCenter));
+            const scrollPercent = maxThumbTravel === 0 ? 0 : bounded / maxThumbTravel;
+
+            scrollContainer.scrollLeft = scrollPercent * maxScroll;
+        });
+
+        // Recalculate when a Bootstrap tab is shown (hidden tables get correct dimensions)
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', () => {
+                setTimeout(update, 0);
+            });
+        });
+
+        // Initial calculation (after layout)
+        setTimeout(update, 0);
+    });
+}
+
+// Initialize custom scrollbars when DOM is ready
+document.addEventListener('DOMContentLoaded', initCustomScrollbars);
+
+/* ---------- SORTABLE TABLES ---------- */
 document.addEventListener('DOMContentLoaded', function() {
     // Setup sortable headers for batting table
     const battingHeaders = document.querySelectorAll('#batting th');

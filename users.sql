@@ -1,7 +1,7 @@
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS posts;
-DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS likes;
+DROP TABLE IF EXISTS comments;
+DROP TABLE IF EXISTS posts;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -56,4 +56,4 @@ CREATE INDEX idx_user_id_likes ON likes(user_id);
 CREATE INDEX idx_post_id_likes ON likes(post_id);
 
 INSERT INTO users (username, email, password_hash, is_admin)
-VALUES ('admin', 'admin@baseball.com', 'pbkdf2:sha256:600000$placeholder$hash', TRUE);
+VALUES ('admin', 'admin@baseball.com', 'scrypt:32768:8:1$bPw6HuLrCwqTitUu$eed9a906cb2e00c9c6e08c84bf800fea5a69649ef34f3c4e46e45a7f78ae186bb8964d204d197335ae67e6734bb64e42549585061e127617e40d12eae70dac97', TRUE);

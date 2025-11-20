@@ -88,7 +88,7 @@
                                 <!-- Post Actions -->
                                 <div class="post-actions mb-3 border-top border-bottom py-2">
                                     {% set user_liked = post.likes | selectattr('user_id', 'equalto', current_user.id) | list | length > 0 %}
-                                    <button class="btn btn-sm btn-like" data-post-id="{{ post.id }}" {% if user_liked %}class="btn btn-sm btn-like liked"{% endif %}>
+                                    <button class="btn btn-sm btn-like" data-post-id="{{ post.id }}" {% if user_liked %}data-liked="true"{% endif %}>
                                         <i class="bi bi-heart{% if user_liked %}-fill{% endif %}"></i>
                                         <span>{% if user_liked %}Liked{% else %}Like{% endif %}</span>
                                     </button>
@@ -222,8 +222,25 @@
         color: #555;
     }
 
-    .btn-like.liked {
+    .btn-like:hover {
         color: #e74c3c;
+    }
+
+    /* Fix delete button sizes to prevent shape changes */
+    .btn-delete-post,
+    .btn-delete-comment {
+        width: 1.75rem;
+        height: .5rem;
+        padding: 0.25rem !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .btn-delete-post i,
+    .btn-delete-comment i {
+        font-size: 0.875rem;
     }
 </style>
 
@@ -337,7 +354,6 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        btn.classList.toggle('liked');
                         const icon = btn.querySelector('i');
                         const span = btn.querySelector('span');
 
@@ -345,12 +361,12 @@
                             icon.classList.remove('bi-heart');
                             icon.classList.add('bi-heart-fill');
                             span.textContent = 'Liked';
-                            btn.classList.add('liked');
+                            btn.setAttribute('data-liked', 'true');
                         } else {
                             icon.classList.remove('bi-heart-fill');
                             icon.classList.add('bi-heart');
                             span.textContent = 'Like';
-                            btn.classList.remove('liked');
+                            btn.removeAttribute('data-liked');
                         }
 
                         // Update like count

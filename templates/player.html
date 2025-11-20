@@ -35,6 +35,40 @@
         margin: 5px 0;
         color: #555;
     }
+
+    .table-responsive {
+        border-radius: 0.25rem;
+    }
+
+    /* Hide default scrollbar */
+    .table-responsive {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Custom scrollbar at top */
+    .scrollbar-container {
+        background: #f1f1f1;
+        border-radius: 10px;
+        height: 8px;
+        margin-bottom: 8px;
+        cursor: pointer;
+    }
+
+    .scrollbar-thumb {
+        background: #495057;
+        height: 100%;
+        border-radius: 10px;
+        transition: background 0.2s ease;
+    }
+
+    .scrollbar-thumb:hover {
+        background: #343a40;
+    }
 </style>
 
 <div class="container mt-5">
@@ -93,7 +127,7 @@
                 <div class="tab-pane fade show active" id="batting-content" role="tabpanel" aria-labelledby="batting-tab">
                     <div class="mt-5">
                         <h3>Career Batting Statistics</h3>
-                        
+
                         <!-- Career Totals -->
                         <div class="card mt-4 mb-4">
                             <div class="card-header bg-primary text-white">
@@ -106,32 +140,56 @@
                                             <tr>
                                                 <th>G</th>
                                                 <th>AB</th>
+                                                <th>PA</th>
                                                 <th>H</th>
+                                                <th>1B</th>
                                                 <th>2B</th>
                                                 <th>3B</th>
                                                 <th>HR</th>
                                                 <th>R</th>
                                                 <th>RBI</th>
                                                 <th>BB</th>
+                                                <th>IBB</th>
                                                 <th>SO</th>
                                                 <th>SB</th>
+                                                <th>CS</th>
+                                                <th>HBP</th>
+                                                <th>SH</th>
+                                                <th>SF</th>
+                                                <th>GDP</th>
                                                 <th>AVG</th>
+                                                <th>OBP</th>
+                                                <th>SLG</th>
+                                                <th>ISO</th>
+                                                <th>BABIP</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
                                                 <td><strong>{{ batting_stats|sum(attribute='games') }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='at_bats') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='plate_appearances') }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='hits') }}</strong></td>
+                                                <td><strong>{{ (batting_stats|sum(attribute='hits') - batting_stats|sum(attribute='doubles') - batting_stats|sum(attribute='triples') - batting_stats|sum(attribute='home_runs')) }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='doubles') }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='triples') }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='home_runs') }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='runs') }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='rbis') }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='walks') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='intentional_walks') }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='strikeouts') }}</strong></td>
                                                 <td><strong>{{ batting_stats|sum(attribute='stolen_bases') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='caught_stealing') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='hit_by_pitch') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='sacrifice_hits') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='sacrifice_flies') }}</strong></td>
+                                                <td><strong>{{ batting_stats|sum(attribute='gdp') }}</strong></td>
                                                 <td><strong>{{ "%.3f"|format(batting_stats|sum(attribute='hits') / (batting_stats|sum(attribute='at_bats') if batting_stats|sum(attribute='at_bats') else 1)) }}</strong></td>
+                                                <td><strong>N/A</strong></td>
+                                                <td><strong>N/A</strong></td>
+                                                <td><strong>N/A</strong></td>
+                                                <td><strong>N/A</strong></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -145,6 +203,10 @@
                                 <h5 class="mb-0">Year-by-Year Breakdown</h5>
                             </div>
                             <div class="card-body">
+                                <!-- CUSTOM SCROLLBAR OUTSIDE .table-responsive -->
+                                <div class="scrollbar-container">
+                                    <div class="scrollbar-thumb" data-table="batting-career"></div>
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-striped table-hover" id="batting-career">
                                         <thead class="table-dark">
@@ -153,16 +215,28 @@
                                                 <th>Team</th>
                                                 <th>G</th>
                                                 <th>AB</th>
+                                                <th>PA</th>
                                                 <th>H</th>
+                                                <th>1B</th>
                                                 <th>2B</th>
                                                 <th>3B</th>
                                                 <th>HR</th>
                                                 <th>R</th>
                                                 <th>RBI</th>
                                                 <th>BB</th>
+                                                <th>IBB</th>
                                                 <th>SO</th>
                                                 <th>SB</th>
+                                                <th>CS</th>
+                                                <th>HBP</th>
+                                                <th>SH</th>
+                                                <th>SF</th>
+                                                <th>GDP</th>
                                                 <th>AVG</th>
+                                                <th>OBP</th>
+                                                <th>SLG</th>
+                                                <th>ISO</th>
+                                                <th>BABIP</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -172,16 +246,28 @@
                                                 <td><a href="{{ url_for('search') }}">{{ season.team }}</a></td>
                                                 <td>{{ season.games if season.games else "-" }}</td>
                                                 <td>{{ season.at_bats }}</td>
+                                                <td>{{ season.plate_appearances if season.plate_appearances else "-" }}</td>
                                                 <td>{{ season.hits }}</td>
+                                                <td>{{ (season.hits - season.doubles - season.triples - season.home_runs) if season.hits else "-" }}</td>
                                                 <td>{{ season.doubles }}</td>
                                                 <td>{{ season.triples }}</td>
                                                 <td>{{ season.home_runs }}</td>
                                                 <td>{{ season.runs }}</td>
                                                 <td>{{ season.rbis }}</td>
                                                 <td>{{ season.walks }}</td>
+                                                <td>{{ season.intentional_walks if season.intentional_walks else "-" }}</td>
                                                 <td>{{ season.strikeouts }}</td>
                                                 <td>{{ season.stolen_bases }}</td>
-                                                <td>{{ "%.3f"|format(season.batting_average) if season.batting_average else "N/A" }}</td>
+                                                <td>{{ season.caught_stealing if season.caught_stealing else "-" }}</td>
+                                                <td>{{ season.hit_by_pitch if season.hit_by_pitch else "-" }}</td>
+                                                <td>{{ season.sacrifice_hits if season.sacrifice_hits else "-" }}</td>
+                                                <td>{{ season.sacrifice_flies if season.sacrifice_flies else "-" }}</td>
+                                                <td>{{ season.gdp if season.gdp else "-" }}</td>
+                                                <td>{{ "%.3f"|format(season.batting_average) if season.batting_average else "-" }}</td>
+                                                <td>{{ "%.3f"|format(season.on_base_pct) if season.on_base_pct else "-" }}</td>
+                                                <td>{{ "%.3f"|format(season.slugging_pct) if season.slugging_pct else "-" }}</td>
+                                                <td>{{ "%.3f"|format(season.isolated_power) if season.isolated_power else "-" }}</td>
+                                                <td>{{ "%.3f"|format(season.babip) if season.babip else "-" }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -198,7 +284,7 @@
                 <div class="tab-pane fade {% if not batting_stats %}show active{% endif %}" id="pitching-content" role="tabpanel" aria-labelledby="pitching-tab">
                     <div class="mt-5">
                         <h3>Career Pitching Statistics</h3>
-                        
+
                         <!-- Career Totals -->
                         <div class="card mt-4 mb-4">
                             <div class="card-header bg-primary text-white">
@@ -216,13 +302,25 @@
                                                 <th>W</th>
                                                 <th>L</th>
                                                 <th>SV</th>
-                                                <th>IPOuts</th>
+                                                <th>IP</th>
                                                 <th>H</th>
                                                 <th>R</th>
                                                 <th>ER</th>
                                                 <th>BB</th>
+                                                <th>IBB</th>
+                                                <th>HBP</th>
                                                 <th>SO</th>
                                                 <th>HR</th>
+                                                <th>WP</th>
+                                                <th>BK</th>
+                                                <th>BFP</th>
+                                                <th>GF</th>
+                                                <th>SH</th>
+                                                <th>SF</th>
+                                                <th>GDP</th>
+                                                <th>ERA</th>
+                                                <th>BAA</th>
+                                                <th>WHIP</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -234,13 +332,25 @@
                                                 <td><strong>{{ pitching_stats|sum(attribute='wins') }}</strong></td>
                                                 <td><strong>{{ pitching_stats|sum(attribute='losses') }}</strong></td>
                                                 <td><strong>{{ pitching_stats|sum(attribute='saves') }}</strong></td>
-                                                <td><strong>{{ pitching_stats|sum(attribute='ip_outs') }}</strong></td>
+                                                <td><strong>{{ "%.1f"|format(pitching_stats|sum(attribute='ip_outs') / 3) }}</strong></td>
                                                 <td><strong>{{ pitching_stats|sum(attribute='hits') }}</strong></td>
                                                 <td><strong>{{ pitching_stats|sum(attribute='runs') }}</strong></td>
                                                 <td><strong>{{ pitching_stats|sum(attribute='earned_runs') }}</strong></td>
                                                 <td><strong>{{ pitching_stats|sum(attribute='walks') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='intentional_walks') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='hit_by_pitch') }}</strong></td>
                                                 <td><strong>{{ pitching_stats|sum(attribute='strikeouts') }}</strong></td>
                                                 <td><strong>{{ pitching_stats|sum(attribute='home_runs') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='wild_pitches') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='balks') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='batters_faced') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='games_finished') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='sacrifice_hits') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='sacrifice_flies') }}</strong></td>
+                                                <td><strong>{{ pitching_stats|sum(attribute='gdp') }}</strong></td>
+                                                <td><strong>N/A</strong></td>
+                                                <td><strong>N/A</strong></td>
+                                                <td><strong>N/A</strong></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -254,6 +364,10 @@
                                 <h5 class="mb-0">Year-by-Year Breakdown</h5>
                             </div>
                             <div class="card-body">
+                                <!-- CUSTOM SCROLLBAR OUTSIDE .table-responsive -->
+                                <div class="scrollbar-container">
+                                    <div class="scrollbar-thumb" data-table="pitching-career"></div>
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-striped table-hover" id="pitching-career">
                                         <thead class="table-dark">
@@ -267,15 +381,25 @@
                                                 <th>W</th>
                                                 <th>L</th>
                                                 <th>SV</th>
-                                                <th>IPOuts</th>
+                                                <th>IP</th>
                                                 <th>H</th>
                                                 <th>R</th>
                                                 <th>ER</th>
                                                 <th>BB</th>
+                                                <th>IBB</th>
+                                                <th>HBP</th>
                                                 <th>SO</th>
                                                 <th>HR</th>
+                                                <th>WP</th>
+                                                <th>BK</th>
+                                                <th>BFP</th>
+                                                <th>GF</th>
+                                                <th>SH</th>
+                                                <th>SF</th>
+                                                <th>GDP</th>
                                                 <th>ERA</th>
                                                 <th>BAA</th>
+                                                <th>WHIP</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -290,15 +414,25 @@
                                                 <td>{{ season.wins if season.wins else "-" }}</td>
                                                 <td>{{ season.losses if season.losses else "-" }}</td>
                                                 <td>{{ season.saves if season.saves else "-" }}</td>
-                                                <td>{{ season.ip_outs if season.ip_outs else "-" }}</td>
+                                                <td>{{ season.innings_pitched if season.innings_pitched else "-" }}</td>
                                                 <td>{{ season.hits if season.hits else "-" }}</td>
                                                 <td>{{ season.runs if season.runs else "-" }}</td>
                                                 <td>{{ season.earned_runs if season.earned_runs else "-" }}</td>
                                                 <td>{{ season.walks if season.walks else "-" }}</td>
+                                                <td>{{ season.intentional_walks if season.intentional_walks else "-" }}</td>
+                                                <td>{{ season.hit_by_pitch if season.hit_by_pitch else "-" }}</td>
                                                 <td>{{ season.strikeouts if season.strikeouts else "-" }}</td>
                                                 <td>{{ season.home_runs if season.home_runs else "-" }}</td>
-                                                <td>{{ season.era if season.era else "N/A" }}</td>
-                                                <td>{{ "%.3f"|format(season.batting_avg_allowed) if season.batting_avg_allowed else "N/A" }}</td>
+                                                <td>{{ season.wild_pitches if season.wild_pitches else "-" }}</td>
+                                                <td>{{ season.balks if season.balks else "-" }}</td>
+                                                <td>{{ season.batters_faced if season.batters_faced else "-" }}</td>
+                                                <td>{{ season.games_finished if season.games_finished else "-" }}</td>
+                                                <td>{{ season.sacrifice_hits if season.sacrifice_hits else "-" }}</td>
+                                                <td>{{ season.sacrifice_flies if season.sacrifice_flies else "-" }}</td>
+                                                <td>{{ season.gdp if season.gdp else "-" }}</td>
+                                                <td>{{ "%.2f"|format(season.era) if season.era else "-" }}</td>
+                                                <td>{{ "%.3f"|format(season.batting_avg_allowed) if season.batting_avg_allowed else "-" }}</td>
+                                                <td>{{ "%.3f"|format(season.whip) if season.whip else "-" }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -315,7 +449,7 @@
                 <div class="tab-pane fade {% if not batting_stats and not pitching_stats %}show active{% endif %}" id="fielding-content" role="tabpanel" aria-labelledby="fielding-tab">
                     <div class="mt-5">
                         <h3>Career Fielding Statistics</h3>
-                        
+
                         <!-- Career Totals -->
                         <div class="card mt-4 mb-4">
                             <div class="card-header bg-primary text-white">
@@ -359,6 +493,10 @@
                                 <h5 class="mb-0">Year-by-Year Breakdown</h5>
                             </div>
                             <div class="card-body">
+                                <!-- CUSTOM SCROLLBAR OUTSIDE .table-responsive -->
+                                <div class="scrollbar-container">
+                                    <div class="scrollbar-thumb" data-table="fielding-career"></div>
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-striped table-hover" id="fielding-career">
                                         <thead class="table-dark">
@@ -424,6 +562,123 @@ const sortState = {
     'fielding-career': { column: null, ascending: true }
 };
 
+/* ---------- FIXED, TAB-AWARE CUSTOM SCROLLBARS ---------- */
+function initCustomScrollbars() {
+    const thumbs = document.querySelectorAll('.scrollbar-thumb');
+
+    thumbs.forEach(thumb => {
+        const tableId = thumb.getAttribute('data-table');
+        const tableEl = document.getElementById(tableId);
+        if (!tableEl) return;
+
+        const scrollContainer = tableEl.closest('.table-responsive');
+        const barContainer = thumb.closest('.scrollbar-container');
+        if (!scrollContainer || !barContainer) return;
+
+        function update() {
+            const scrollWidth = scrollContainer.scrollWidth;
+            const clientWidth = scrollContainer.clientWidth;
+            const scrollLeft = scrollContainer.scrollLeft;
+
+            // If no horizontal overflow, hide the custom bar
+            if (scrollWidth <= clientWidth) {
+                barContainer.style.display = 'none';
+                return;
+            } else {
+                barContainer.style.display = 'block';
+            }
+
+            const trackWidth = barContainer.clientWidth;
+            const thumbWidthPx = Math.max(20, (clientWidth / scrollWidth) * trackWidth);
+            const maxScroll = scrollWidth - clientWidth;
+            const maxThumbTravel = trackWidth - thumbWidthPx;
+
+            const thumbLeftPx = maxScroll === 0 ? 0 : (scrollLeft / maxScroll) * maxThumbTravel;
+
+            thumb.style.width = thumbWidthPx + 'px';
+            thumb.style.transform = `translateX(${thumbLeftPx}px)`;
+        }
+
+        // Sync when table scrolls
+        scrollContainer.addEventListener('scroll', update);
+
+        // Sync on window resize
+        window.addEventListener('resize', update);
+
+        // Dragging behavior
+        let isDragging = false;
+        let dragStartX = 0;
+        let startScrollLeft = 0;
+
+        thumb.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragStartX = e.clientX;
+            startScrollLeft = scrollContainer.scrollLeft;
+            thumb.style.background = '#343a40';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const trackWidth = barContainer.clientWidth;
+            const scrollWidth = scrollContainer.scrollWidth;
+            const clientWidth = scrollContainer.clientWidth;
+            const maxScroll = scrollWidth - clientWidth;
+
+            const thumbWidthPx = Math.max(20, (clientWidth / scrollWidth) * trackWidth);
+            const maxThumbTravel = trackWidth - thumbWidthPx;
+
+            const deltaX = e.clientX - dragStartX;
+            const scrollRatio = maxScroll / maxThumbTravel;
+
+            scrollContainer.scrollLeft = startScrollLeft + deltaX * scrollRatio;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            thumb.style.background = '#495057';
+        });
+
+        // Click on the track to jump
+        barContainer.addEventListener('click', (e) => {
+            if (e.target === thumb) return;
+
+            const rect = barContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+
+            const trackWidth = barContainer.clientWidth;
+            const scrollWidth = scrollContainer.scrollWidth;
+            const clientWidth = scrollContainer.clientWidth;
+            const maxScroll = scrollWidth - clientWidth;
+
+            const thumbWidthPx = Math.max(20, (clientWidth / scrollWidth) * trackWidth);
+            const maxThumbTravel = trackWidth - thumbWidthPx;
+
+            const thumbCenter = clickX - thumbWidthPx / 2;
+            const bounded = Math.max(0, Math.min(maxThumbTravel, thumbCenter));
+            const scrollPercent = maxThumbTravel === 0 ? 0 : bounded / maxThumbTravel;
+
+            scrollContainer.scrollLeft = scrollPercent * maxScroll;
+        });
+
+        // Recalculate when a Bootstrap tab is shown
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', () => {
+                setTimeout(update, 0);
+            });
+        });
+
+        // Initial calculation (after layout)
+        setTimeout(update, 0);
+    });
+}
+
+// Initialize custom scrollbars when DOM is ready
+document.addEventListener('DOMContentLoaded', initCustomScrollbars);
+
+/* ---------- SORTABLE HEADERS ---------- */
 document.addEventListener('DOMContentLoaded', function() {
     // Setup sortable headers for batting career table
     const battingHeaders = document.querySelectorAll('#batting-career th');
@@ -462,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function sortTable(tableId, columnIndex) {
     const tableBody = document.querySelector(`#${tableId} tbody`);
     const rows = Array.from(tableBody.querySelectorAll('tr'));
-    
+
     // Toggle sort direction if same column is clicked
     if (sortState[tableId].column === columnIndex) {
         sortState[tableId].ascending = !sortState[tableId].ascending;
